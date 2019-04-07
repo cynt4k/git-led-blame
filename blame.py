@@ -15,7 +15,11 @@ class Blame(object):
         self.font_ok.LoadFont('4x6.bdf')
         self.font_ok_color = graphics.Color(0, 30, 200)
         self.circle_ok_color = graphics.Color(100, 255, 40)
+        self.font_error = self.font_ok
+        self.font_error_color = graphics.Color(255, 0, 0)
         self.circle_error_color = graphics.Color(255, 0, 0)
+        self.font_info = self.font_ok
+        self.font_info_color = graphics.Color(255, 255, 255)
 
     def run(self):
         while True:
@@ -55,6 +59,10 @@ class Blame(object):
         for i in range(0, 9):
             canvas.SetPixel(x_pos +i, y_pos + i, 255, 255, 255)
 
+        graphics.DrawText(self.canvas, self.font_error, 26, 14, self.font_error_color, 'FAILED ON')
+        graphics.DrawText(self.canvas, self.font_info, 26, 24, self.font_info_color, 'master')
+
+    
 
 
 
