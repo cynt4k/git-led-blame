@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import gitlab
+import settings
 import matrix
 from rgbmatrix import graphics
 
@@ -26,7 +27,8 @@ class Blame(object):
             self.canvas.Clear()
             project = self.api.get_project()
             # self.draw_ok(project['name'])
-            self.draw_error('sepp')
+            # self.draw_error('sepp')
+            self.draw_error_blame('sepp')
             self.canvas = self.display.matrix.SwapOnVSync(self.canvas)
             time.sleep(20)
 
@@ -60,9 +62,33 @@ class Blame(object):
             canvas.SetPixel(x_pos +i, y_pos + i, 255, 255, 255)
 
         graphics.DrawText(self.canvas, self.font_error, 26, 14, self.font_error_color, 'FAILED ON')
-        graphics.DrawText(self.canvas, self.font_info, 26, 24, self.font_info_color, 'master')
+        graphics.DrawText(self.canvas, self.font_info, 26, 24, self.font_info_color, name)
 
-    
+
+    def draw_error_blame(self, name: str):
+        canvas = self.canvas
+
+        start_info = self.calc_horizontal_center(len(settings.BLAME_TEXT_HEADER), 4, 0, self.display.matrix.width)
+        start_name = self.calc_horizontal_center(len(name), 4, 0, self.display.matrix.width)
+
+        graphics.DrawText(self.canvas, self.font_info, start_info, 10, self.font_info_color, settings.BLAME_TEXT_HEADER)
+        graphics.DrawText(self.canvas, self.font_info, start_name, 18, self.font_info_color, name)
+
+        start_info = self.calc_horizontal_center(len(settings.BLAME_TEXT_FOOTER), 4, 0, self.display.matrix.width)
+        graphics.DrawText(self.canvas, self.font_info, start_info, 28, self.font_info_color, settings.BLAME_TEXT_FOOTER)
+
+    def calc_horizontal_center(self, text_length: int, font_width: int, x_start: int, x_end: int) -> int:
+        if text_length * font_width >= x_end - x_start:
+            return x_start
+
+        size = text_length * font_width
+
+        size_half = int(size / 2)
+        x_half = int((x_end - x_start) / 2 + x_start)
+        return x_half - size_half
+
+
+
 
 
 
