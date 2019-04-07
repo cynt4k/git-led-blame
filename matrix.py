@@ -9,6 +9,7 @@ class Display(object):
         options.chain_length = 1
         options.parallel = 1
         options.pwm_bits = 11
+        options.sh
         options.hardware_mapping = 'regular'
         options.pwm_lsb_nanoseconds = 130
         options.gpio_slowdown = 1

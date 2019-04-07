@@ -59,8 +59,8 @@ class GitlabHelper():
             filter_func = lambda pipeline: pipeline['status'] == 'failed'
             data = list(filter(filter_func, pipelines))
             # failed = filter(lambda pipeline: pipeline.status == 'failed', pipelines)
-            if len(failed) >= 1:
-                failed = self.get_pipeline(data[0].id)
+            if len(data) >= 1:
+                failed = self.get_pipeline(data[0]['id'])
             return failed
         except Exception:
             return data

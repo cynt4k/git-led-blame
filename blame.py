@@ -1,3 +1,4 @@
+import sys
 import requests
 import json
 import time
@@ -24,27 +25,41 @@ class Blame(object):
         self.font_info_color = graphics.Color(255, 255, 255)
 
     def run(self):
+        counter = settings.CHECK_INTERVAL
         while True:
             self.canvas.Clear()
             try:
-                project = self.api.get_project()
-                is_ok = self.api.check_if_ok(self.branch)
+                is_ok = False
+                if counter == settings.CHECK_INTERVAL:
+                    project = self.api.get_project()
+                    is_ok = self.api.check_if_ok(self.branch)
+                    counter = 0
 
                 if is_ok:
                     self.draw_ok(project['name'])
                 else:
                     pipeline = self.api.get_last_failed(branch=self.branch)
-                    print(pipeline)
+                    if counter % 2:
+                        self.draw_error_blame(pipeline['user']['username'])
+                    else:
+                        self.draw_error(self.branch)
 
             except Exception as e:
                 print(e)
+                sys.stdout.flush()
+                self.draw_internal_error(e)
             
 
             # self.draw_ok(project['name'])
             # self.draw_error('sepp')
             # self.draw_error_blame('sepp')
             self.canvas = self.display.matrix.SwapOnVSync(self.canvas)
-            time.sleep(20)
+            time.sleep(1)
+            counter += 1
+
+    def draw_internal_error(self, e: Exception):
+        start_error = self.calc_horizontal_center(len(settings.INTERNAL_ERROR), 4, 0, self.display.matrix.width)
+        graphics.DrawText(self.canvas, self.font_error, start_error, 19, self.font_error_color, settings.INTERNAL_ERROR)
 
     def draw_ok(self, name: str):
         canvas = self.canvas
@@ -108,28 +123,7 @@ class Blame(object):
 
 
 if __name__ == "__main__":
-    helper = gitlab.GitlabHelper('https://git.cynt4k.de/api/v4', 39, 'kVFN3qCjHkJFVeMv5jJB')
-    display = matrix.Display(50)
-    blamer = Blame(helper, display, 'master')
+    helper = gitlab.GitlabHelper(settings.GITLAB_URL, settings.GITLAB_PROJECT, settings.GITLAB_AUTH)
+    display = matrix.Display(settings.DISPLAY_BRIGHTNESS)
+    blamer = Blame(helper, display, settings.GITLAB_BRANCH)
     blamer.run()
-    # project = helper.get_project()
-
-    # canvas = display.matrix.CreateFrameCanvas()
-    # font = graphics.Font()
-    # font.LoadFont('font.bdf')
-    # textColor = graphics.Color(255, 255, 0)
-    # pos = canvas.width
-
-    # while True:
-    #     canvas.Clear()
-    #     graphics.DrawText(canvas, font, pos, 10, textColor, project['name'])
-    #     graphics.DrawCircle(canvas, 20, 20, 10, textColor)
-    #     time.sleep(2)
-    #     canvas = display.matrix.SwapOnVSync(canvas)
-
-
-    # helper.get_pipeline(39)
-    # pipelines = helper.get_last_failed()
-    # helper.check_if_ok('master')
-    # pipelines = get_pipelines(
-    #     'https://git.cynt4k.de/api/v4/projects/39/pipelines', 'kVFN3qCjHkJFVeMv5jJB')
