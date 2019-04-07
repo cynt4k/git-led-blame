@@ -48,29 +48,29 @@ class GitlabHelper():
         else:
             raise Exception('Error while getting data')
 
-    def get_last_failed(self) -> dict:
+    def get_last_failed(self, branch=None) -> dict:
         failed = dict()
 
         try:
-            pipelines = self.get_pipelines()
+            if branch:
+                pipelines = self.get_pipelines(branch=branch)
+            else:
+                pipelines = self.get_pipelines()
             filter_func = lambda pipeline: pipeline['status'] == 'failed'
             data = list(filter(filter_func, pipelines))
             # failed = filter(lambda pipeline: pipeline.status == 'failed', pipelines)
             if len(failed) >= 1:
-                failed = data[0]
+                failed = self.get_pipeline(data[0].id)
             return failed
         except Exception:
             return data
 
     def check_if_ok(self, branch: str) -> bool:
-        try:
-            pipelines = self.get_pipelines(branch=branch)
-            if len(pipelines) == 0:
-                return True
-            
-            if pipelines[0]['status'] == 'failed':
-                return False
-            else:
-                return True
-        except Exception:
+        pipelines = self.get_pipelines(branch=branch)
+        if len(pipelines) == 0:
+            return True
+           
+        if pipelines[0]['status'] == 'failed':
             return False
+        else:
+            return True

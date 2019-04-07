@@ -8,9 +8,10 @@ from rgbmatrix import graphics
 
 class Blame(object):
 
-    def __init__(self, api: gitlab.GitlabHelper, display: matrix.Display):
+    def __init__(self, api: gitlab.GitlabHelper, display: matrix.Display, branch: str):
         self.api = api
         self.display = display
+        self.branch = branch
         self.canvas = self.display.matrix.CreateFrameCanvas()
         self.font_ok = graphics.Font()
         self.font_ok.LoadFont('4x6.bdf')
@@ -25,16 +26,30 @@ class Blame(object):
     def run(self):
         while True:
             self.canvas.Clear()
-            project = self.api.get_project()
+            try:
+                project = self.api.get_project()
+                is_ok = self.api.check_if_ok(self.branch)
+
+                if is_ok:
+                    self.draw_ok(project['name'])
+                else:
+                    pipeline = self.api.get_last_failed(branch=self.branch)
+                    print(pipeline)
+
+            except Exception as e:
+                print(e)
+            
+
             # self.draw_ok(project['name'])
             # self.draw_error('sepp')
-            self.draw_error_blame('sepp')
+            # self.draw_error_blame('sepp')
             self.canvas = self.display.matrix.SwapOnVSync(self.canvas)
             time.sleep(20)
 
     def draw_ok(self, name: str):
         canvas = self.canvas
-        graphics.DrawText(self.canvas, self.font_ok, 0, 8, self.font_ok_color, name)
+        start_headline = self.calc_horizontal_center(len(name), 4, 0, self.display.matrix.width)
+        graphics.DrawText(self.canvas, self.font_ok, start_headline, 8, self.font_ok_color, name)
         graphics.DrawCircle(self.canvas, 32, 20, 10, self.circle_ok_color)
 
         x_pos = 27
@@ -95,7 +110,7 @@ class Blame(object):
 if __name__ == "__main__":
     helper = gitlab.GitlabHelper('https://git.cynt4k.de/api/v4', 39, 'kVFN3qCjHkJFVeMv5jJB')
     display = matrix.Display(50)
-    blamer = Blame(helper, display)
+    blamer = Blame(helper, display, 'master')
     blamer.run()
     # project = helper.get_project()
 
